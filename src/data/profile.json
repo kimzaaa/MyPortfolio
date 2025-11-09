@@ -1,0 +1,16 @@
+{
+  "name": "Thitiwat Buayam",
+  "role": "Software & Game Developer / Engineer",
+  "headline": "Designing bold, modern experiences.",
+  "blurb": "I craft performant products across web, mobile, and games with an eye for motion, UX, and systems thinking. Teams remember me for polished delivery and collaborative energy.",
+  "location": "Bangkok, Thailand",
+  "email": "you@example.com",
+  "heroImage": "https://images.unsplash.com/photo-1547658719-8c1e9b45f210?q=80&w=1600&auto=format&fit=crop",
+  "social": [
+    { "label": "GitHub", "icon": "github", "href": "https://github.com/yourname" },
+    { "label": "LinkedIn", "icon": "linkedin", "href": "https://linkedin.com/in/yourname" },
+    { "label": "YouTube", "icon": "youtube", "href": "https://youtube.com/@yourname" },
+    { "label": "Instagram", "icon": "instagram", "href": "https://instagram.com/yourname" }
+  ],
+  "keywords": ["React", "TypeScript", "Unity", "Expo", "Shader Graph", "UI/UX", "Python"]
+}

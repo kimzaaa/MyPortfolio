@@ -1,0 +1,33 @@
+[
+  {
+    "title": "Project Lumphini",
+    "subtitle": "AR GPS-based RPG in Bangkok's Lumphini Park",
+    "tags": ["Unity", "AR", "Mobile"],
+    "description": "Community-driven purification loops, pixel-art isometric look, and real-world exploration mechanics.",
+    "links": [
+      { "label": "Repo", "href": "#" },
+      { "label": "Demo", "href": "#" }
+    ],
+    "image": "https://images.unsplash.com/photo-1520975661595-6453be3f7070?q=80&w=1200&auto=format&fit=crop"
+  },
+  {
+    "title": "EventApp",
+    "subtitle": "Bangkok events with star-map UI and glass search",
+    "tags": ["React Native", "Expo", "Maps"],
+    "description": "City events with elegant filters, offline caching, and playful interactions.",
+    "links": [
+      { "label": "Case Study", "href": "#" }
+    ],
+    "image": "https://images.unsplash.com/photo-1554631221-f9603e6808be?q=80&w=1200&auto=format&fit=crop"
+  },
+  {
+    "title": "Astroplanters",
+    "subtitle": "Cozy top-down sci-fi farming on an exoplanet",
+    "tags": ["Unity", "C#", "Design"],
+    "description": "Modular domes, life-support systems, and companion AI gardeners across alien biomes.",
+    "links": [
+      { "label": "Trailer", "href": "#" }
+    ],
+    "image": "https://images.unsplash.com/photo-1543722530-d2c3201371e7?q=80&w=1200&auto=format&fit=crop"
+  }
+]

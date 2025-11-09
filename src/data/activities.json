@@ -1,0 +1,29 @@
+[
+  {
+    "title": "Piano & Music Performance",
+    "icon": "piano",
+    "items": [
+      "Liszt – Liebesträume (complete)",
+      "Chopin – Minute Waltz",
+      "Ambient/game OST sketches for Astroplanters"
+    ]
+  },
+  {
+    "title": "Choir / Vocal Ensemble",
+    "icon": "mic",
+    "items": [
+      "School choir: tenor section lead",
+      "Arranging simple SATB harmonies for events",
+      "Collab covers on YouTube"
+    ]
+  },
+  {
+    "title": "Community & Volunteering",
+    "icon": "music",
+    "items": [
+      "Intro to Unity workshops for juniors",
+      "Organizing local game-jam events",
+      "EventApp beta testing with Thai students"
+    ]
+  }
+]
