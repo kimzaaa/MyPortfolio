@@ -2,7 +2,7 @@
   "name": "Thitiwat Buayam",
   "role": "Software & Game Developer / Engineer",
   "headline": "Designing bold, modern experiences.",
-  "blurb": "I craft performant products across web, mobile, and games with an eye for motion, UX, and systems thinking. Teams remember me for polished delivery and collaborative energy.",
+  "blurb": "I build performant web, mobile, and game experiences with a focus on UI/UX, motion, and systems thinking. I'm proficient in React + TypeScript for web apps, Unity (C#) for games, and Expo for mobile — and I ship polished, production-ready features using tools like Vite, Tailwind CSS, Framer Motion, Git, Node.js, and Figma.",
   "location": "Bangkok, Thailand",
   "email": "you@example.com",
   "heroImage": "https://images.unsplash.com/photo-1547658719-8c1e9b45f210?q=80&w=1600&auto=format&fit=crop",
@@ -12,5 +12,42 @@
     { "label": "YouTube", "icon": "youtube", "href": "https://youtube.com/@yourname" },
     { "label": "Instagram", "icon": "instagram", "href": "https://instagram.com/yourname" }
   ],
-  "keywords": ["React", "TypeScript", "Unity", "Expo", "Shader Graph", "UI/UX", "Python"]
+  "keywords": ["React", "TypeScript", "Vite", "Tailwind", "Framer Motion", "Unity", "C#", "Expo", "Shader Graph", "Git", "Node.js", "Figma", "Python", "UI/UX"]
+  ,
+  "skills": [
+    {
+      "category": "Game Development",
+      "items": [
+        { "name": "Unity (C#)", "level": "Proficient" },
+        { "name": "Shader Graph", "level": "Familiar" }
+      ]
+    },
+    {
+      "category": "Programming",
+      "items": [
+        { "name": "C++", "level": "Proficient" },
+        { "name": "C", "level": "Familiar" },
+        { "name": "Python", "level": "Familiar" }
+      ]
+    },
+    {
+      "category": "Software Development",
+      "items": [
+        { "name": "React", "level": "Expert" },
+        { "name": "TypeScript", "level": "Expert" },
+        { "name": "Vite", "level": "Proficient" },
+        { "name": "Tailwind CSS", "level": "Proficient" },
+        { "name": "Framer Motion", "level": "Proficient" },
+        { "name": "Node.js", "level": "Proficient" },
+        { "name": "Expo", "level": "Proficient" }
+      ]
+    },
+    {
+      "category": "Tools",
+      "items": [
+        { "name": "Figma", "level": "Proficient" },
+        { "name": "Git", "level": "Proficient" }
+      ]
+    }
+  ]
 }
