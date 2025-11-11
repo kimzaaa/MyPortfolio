@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
-import { Moon, Sun, Github, Linkedin, Mail, Music4, Award, Briefcase, ExternalLink, Trophy, Piano, Mic2, Youtube, Instagram, MapPin, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Github, Linkedin, Mail, Music4, Award, Briefcase, ExternalLink, Piano, Mic2, Youtube, Instagram, MapPin, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import profileData from "./data/profile.json";
 import projectsData from "./data/projects.json";
 import awardsData from "./data/awards.json";
@@ -65,15 +65,13 @@ const PROJECTS = projectsData as Project[];
 const AWARDS = awardsData as Award[];
 const ACTIVITIES = activitiesData as Activity[];
 
+// Auto-scrolling marquee carousel for the hero/profile section
 const CAROUSEL_ITEM_HEIGHT = 320;
-
-const ProjectCarousel = ({ projects }: { projects: Project[] }) => {
+const AutoProjectMarquee = ({ projects }: { projects: Project[] }) => {
   const marqueeProjects = React.useMemo(() => [...projects, ...projects], [projects]);
   const totalHeight = React.useMemo(() => projects.length * CAROUSEL_ITEM_HEIGHT, [projects.length]);
 
-  if (!projects.length) {
-    return null;
-  }
+  if (!projects.length) return null;
 
   return (
     <div className="relative h-[520px] overflow-hidden">
@@ -139,6 +137,121 @@ const ProjectCarousel = ({ projects }: { projects: Project[] }) => {
   );
 };
 
+// Manual switch carousel for projects section
+const ProjectCarousel = ({ projects }: { projects: Project[] }) => {
+  const [index, setIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!projects.length) {
+      setIndex(0);
+      return;
+    }
+    setIndex((prev) => (prev >= projects.length ? 0 : prev));
+  }, [projects.length]);
+
+  if (!projects.length) {
+    return null;
+  }
+
+  const current = projects[index];
+  const handlePrev = () => setIndex((idx) => (idx - 1 + projects.length) % projects.length);
+  const handleNext = () => setIndex((idx) => (idx + 1) % projects.length);
+
+  return (
+    <div className="relative">
+      <div className="relative overflow-hidden rounded-3xl border border-black/10 dark:border-white/10 bg-white/90 dark:bg-black/40 backdrop-blur-md shadow-xl p-4 md:p-5">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${current.title}-${index}`}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+          >
+            <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-black/5 dark:border-white/10">
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `linear-gradient(135deg, rgba(15,23,42,0.5), rgba(37,99,235,0.35)), url(${current.image})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+
+              <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-2">
+                {current.tags.map((tag) => (
+                  <Badge key={`${current.title}-${tag}`} className="rounded-2xl px-3 py-1 text-[10px] md:text-xs bg-white/80 backdrop-blur text-slate-900">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+
+              <div className="absolute left-4 right-4 bottom-4 space-y-1.5 text-white">
+                <div className="font-heading text-xl md:text-2xl tracking-tight uppercase leading-tight line-clamp-2 drop-shadow">{current.title}</div>
+                <div className="text-xs md:text-sm text-white/80 line-clamp-2">{current.subtitle}</div>
+              </div>
+
+              {projects.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handlePrev}
+                    aria-label="Previous project"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/80 text-slate-800 hover:bg-white shadow"
+                  >
+                    <ChevronLeft size={16} className="mx-auto" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    aria-label="Next project"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/80 text-slate-800 hover:bg-white shadow"
+                  >
+                    <ChevronRight size={16} className="mx-auto" />
+                  </button>
+                </>
+              )}
+            </div>
+
+            <div className="mt-4 space-y-3 text-slate-900 dark:text-white">
+              <p className="text-sm md:text-base opacity-90 leading-relaxed line-clamp-5">{current.description}</p>
+              <div className="flex flex-wrap gap-3">
+                {current.links.map((link) => (
+                  <a key={`${current.title}-${link.label}`} href={link.href} target="_blank" rel="noreferrer">
+                    <Button variant="outline" size="sm" className="gap-2 rounded-2xl">
+                      <ExternalLink size={14} />
+                      {link.label}
+                    </Button>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {projects.length > 1 && (
+        <div className="mt-4 flex items-center justify-center gap-2">
+          {projects.map((_, idx) => (
+            <button
+              key={`indicator-${idx}`}
+              type="button"
+              onClick={() => setIndex(idx)}
+              aria-label={`Show project ${idx + 1}`}
+              className={`h-2.5 w-2.5 rounded-full transition ${
+                idx === index
+                  ? "bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.45)]"
+                  : "bg-slate-300/80 dark:bg-white/20 hover:bg-blue-500/60"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // -----------------------------
 // UI Helpers
 // -----------------------------
@@ -148,7 +261,7 @@ const Section = ({ children, id }: { children: React.ReactNode; id?: string }) =
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5 }}
-    className="max-w-6xl mx-auto px-4 md:px-8 py-12 md:py-16"
+    className="w-full min-h-screen flex flex-col justify-center px-6 md:px-12 py-16"
   >
     {children}
   </motion.section>
@@ -164,25 +277,22 @@ const Title = ({ icon, children }: { icon?: React.ReactNode; children: React.Rea
 // -----------------------------
 // Main Component
 // -----------------------------
-type TabKey = "projects" | "awards" | "activities";
-const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
-  { key: "projects", label: "Projects", icon: <Briefcase size={18} /> },
-  { key: "awards", label: "Awards", icon: <Trophy size={18} /> },
-  { key: "activities", label: "Activities", icon: <Music4 size={18} /> },
-];
+// Sections now rendered sequentially (no tabs). Old TabKey/tabs removed.
 
 export default function App() {
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
-  const [active, setActive] = useState<TabKey>("projects");
-  const [ripples, setRipples] = useState<number[]>([]);
-
+  // Force dark mode only.
   React.useEffect(() => {
-    if (theme === "dark") document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-  }, [theme]);
+    document.documentElement.classList.add("dark");
+    return () => {
+      document.documentElement.classList.add("dark");
+    };
+  }, []);
+  // Removed tab state; sections are always rendered in order.
+  const [ripples, setRipples] = useState<number[]>([]);
+  const [showAllProjects, setShowAllProjects] = useState(false);
 
-  const activeIndex = useMemo(() => Math.max(0, tabs.findIndex((t) => t.key === active)), [active]);
-  const tabIndicatorWidth = 100 / tabs.length;
+
+  // Tab indicator logic removed.
 
   const handleProjectCircleClick = () => {
     const rippleId = Date.now();
@@ -372,6 +482,26 @@ export default function App() {
     if (found >= 0) setFlatIndex(found);
   };
 
+  const featuredCount = PROJECTS.length > 1 ? Math.min(3, PROJECTS.length - 1) : 1;
+  const featuredProjects = PROJECTS.slice(0, featuredCount);
+  const listProjects = PROJECTS.slice(featuredCount);
+  const listPreviewCount = 4;
+  const visibleProjects = showAllProjects ? listProjects : listProjects.slice(0, listPreviewCount);
+  const canShowSeeMore = !showAllProjects && listProjects.length > listPreviewCount;
+
+  // Build placeholder items to pad the list visually
+  const minListCards = showAllProjects ? 6 : listPreviewCount;
+  const placeholdersNeeded = Math.max(0, minListCards - visibleProjects.length);
+  const placeholderProjects: Project[] = Array.from({ length: placeholdersNeeded }).map((_, i) => ({
+    title: `Coming soon #${i + 1}`,
+    subtitle: "Case study and repo in progress",
+    tags: ["Placeholder"],
+    description: "I rotate fresh showcases in as soon as the breakdowns are demo-ready. Check back for new builds soon.",
+    links: [],
+    image: "", // gradient-only background
+  }));
+  const displayProjects: Project[] = [...visibleProjects, ...placeholderProjects];
+
   
 
   return (
@@ -382,15 +512,15 @@ export default function App() {
         initial={{ opacity: 0, y: 32 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative overflow-hidden"
+        className="relative overflow-hidden w-full min-h-screen flex"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-white via-white to-blue-50 dark:from-black dark:via-black dark:to-slate-900" />
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-200/40 blur-3xl dark:bg-blue-500/10" />
           <div className="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-purple-200/40 blur-3xl dark:bg-purple-500/10" />
         </div>
-        <div className="relative max-w-6xl mx-auto px-4 md:px-8 pt-24 pb-20 md:pt-32 md:pb-28">
-          <div className="grid gap-12 md:grid-cols-[1.1fr_.9fr] items-start min-h-[60vh]">
+  <div className="relative w-full px-6 md:px-12 py-24 md:py-32 flex items-center">
+          <div className="grid gap-12 md:grid-cols-[1.1fr_.9fr] items-center w-full">
             <div className="flex flex-col justify-center gap-0 max-w-3xl mt-10 md:mt-35">
               <span className="font-heading text-sm md:text-base tracking-[0.1em] uppercase text-blue-600/80 dark:text-blue-400/80">
                 {PROFILE.headline}
@@ -418,11 +548,11 @@ export default function App() {
               </div>
             </div>
             <div className="hidden md:block">
-              <ProjectCarousel projects={PROJECTS} />
+              <AutoProjectMarquee projects={PROJECTS} />
             </div>
           </div>
           <div className="mt-10 md:mt-12 md:hidden">
-            <ProjectCarousel projects={PROJECTS} />
+            <AutoProjectMarquee projects={PROJECTS} />
           </div>
         </div>
         <div className="pointer-events-none absolute inset-x-0 bottom-10 flex justify-center">
@@ -454,7 +584,7 @@ export default function App() {
         className="relative w-full overflow-visible bg-transparent"
       >
         <div className="relative w-full px-6 md:px-12 py-12">
-          <div className="mx-auto w-full max-w-6xl">
+          <div className="w-full">
             <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] items-start">
               {/* Left: About text and quick actions (wide, airy) */}
               <div className="space-y-6">
@@ -527,148 +657,157 @@ export default function App() {
         </div>
       </motion.section>
 
-      {/* Header */}
-      <div className="sticky top-0 z-50 backdrop-blur border-b border-black/10 dark:border-white/10 bg-white/60 dark:bg-black/40">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-4">
-          <a href="#about" className="flex items-center gap-4 group">
-            <div className="w-10 h-10 rounded-2xl bg-blue-600/10 grid place-items-center text-blue-600 font-bold group-hover:bg-blue-600/20 transition-colors">Y</div>
-            <div>
-              <div className="font-heading text-xl md:text-2xl leading-none tracking-[0.12em] uppercase group-hover:tracking-[0.18em] transition-all">{PROFILE.name}</div>
-              <div className="text-xs md:text-sm opacity-70">{PROFILE.role}</div>
+      {/* Header removed per request */}
+
+      {/* Content (sequential sections) */}
+      <div>
+        {/* Projects Section */}
+        <Section id="projects">
+          <Title icon={<Briefcase />}>Projects</Title>
+          <div className="grid gap-10 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)] xl:grid-cols-[minmax(320px,420px)_minmax(0,1fr)]">
+            <div className="space-y-6 lg:sticky lg:top-32 self-start">
+              <div className="space-y-2">
+                <span className="text-xs font-semibold tracking-[0.28em] uppercase text-blue-600/70 dark:text-blue-300/70">Featured Carousel</span>
+                <h3 className="font-heading text-2xl tracking-[0.12em] uppercase leading-none">Complex & Showable</h3>
+                <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">A rotating highlight of the builds I reach for first during deep-dive demos.</p>
+              </div>
+              {featuredProjects.length ? (
+                <Card className="p-4 lg:p-5 border-0 bg-gradient-to-br from-slate-900 via-slate-900/95 to-blue-600/20 text-white shadow-2xl">
+                  <div className="text-xs uppercase tracking-[0.24em] text-white/60 mb-3">Swipe or watch the loop</div>
+                  <ProjectCarousel projects={featuredProjects} />
+                </Card>
+              ) : (
+                <div className="rounded-3xl border border-dashed border-white/40 bg-white/10 p-6 text-sm text-white/70">
+                  Add another project and it will appear here as a featured story.
+                </div>
+              )}
             </div>
-          </a>
 
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}>
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-            </Button>
-            <a href={`mailto:${PROFILE.email}`} className="hidden sm:block">
-              <Button variant="secondary" className="gap-2"><Mail size={16}/> Contact</Button>
-            </a>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="max-w-6xl mx-auto px-2 md:px-8 pb-3">
-          <div
-            className="relative rounded-2xl bg-gray-100 dark:bg-white/10 p-1 grid"
-            style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
-          >
-            {tabs.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => setActive(t.key)}
-                className={`relative z-10 flex items-center justify-center gap-2 py-2 rounded-xl text-sm md:text-base font-semibold transition-colors ${active === t.key ? "" : "opacity-60"}`}
-              >
-                {t.icon}
-                {t.label}
-              </button>
-            ))}
-            <motion.span
-              layout
-              className="absolute inset-y-1 rounded-xl bg-white dark:bg-black shadow-sm border border-black/10 dark:border-white/10"
-              style={{ width: `${tabIndicatorWidth}%` }}
-              animate={{ x: `${activeIndex * tabIndicatorWidth}%` }}
-              transition={{ type: "spring", stiffness: 250, damping: 28 }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <AnimatePresence mode="wait">
-        {active === "projects" && (
-          <motion.div key="projects" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <Section id="projects">
-              <Title icon={<Briefcase />}>Projects</Title>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {PROJECTS.map((p) => (
-                  <Card key={p.title} className="overflow-hidden group">
-                    <div className="aspect-[4/3]" style={{ backgroundImage: `url(${p.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-                    <CardContent className="p-5">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <div className="text-lg font-bold leading-tight">{p.title}</div>
-                          <div className="text-sm opacity-70">{p.subtitle}</div>
-                        </div>
-                        <div className="flex gap-2">
-                          {p.tags.map((t) => (
-                            <Badge key={t} className="rounded-xl">{t}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                      <p className="mt-3 text-sm leading-relaxed opacity-80">{p.description}</p>
-                      <div className="mt-4 flex gap-2 flex-wrap">
-                        {p.links.map((l) => (
-                          <a key={l.label} href={l.href} target="_blank" rel="noreferrer">
-                            <Button size="sm" variant="outline" className="gap-2 rounded-xl">
-                              <ExternalLink size={14} /> {l.label}
-                            </Button>
-                          </a>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <span className="text-xs font-semibold tracking-[0.28em] uppercase text-slate-500 dark:text-slate-400">Project Stack</span>
+                <h3 className="font-heading text-xl tracking-[0.16em] uppercase">Launch-ready builds</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-300">Browse the rest of the roadmap-friendly work. Each cards links out to repos, demos, or case studies.</p>
               </div>
-            </Section>
-          </motion.div>
-        )}
 
-        {active === "awards" && (
-          <motion.div key="awards" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <Section id="awards">
-              <Title icon={<Award />}>Awards</Title>
-              <div className="grid md:grid-cols-2 gap-6">
-                {AWARDS.map((a) => (
-                  <Card key={a.title}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <div className="text-xl font-bold">{a.title}</div>
-                          <div className="text-sm opacity-70">{a.org}</div>
-                        </div>
-                        <Badge variant="outline" className="rounded-xl">{a.year}</Badge>
-                      </div>
-                      <p className="mt-3 text-sm leading-relaxed opacity-80">{a.notes}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </Section>
-          </motion.div>
-        )}
-
-        {active === "activities" && (
-          <motion.div key="activities" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <Section id="activities">
-              <Title icon={<Music4 />}>Other Activities</Title>
-              <div className="grid md:grid-cols-3 gap-6">
-                {ACTIVITIES.map((act) => {
-                  const ActivityIcon = ICON_MAP[act.icon];
+              <div className="space-y-5">
+                {displayProjects.map((p) => {
+                  const isPlaceholder = p.tags?.includes("Placeholder");
                   return (
-                    <Card key={act.title}>
-                      <CardContent className="p-6">
-                        <div className="flex items-center gap-2">
-                          <div className="p-2 rounded-xl bg-gray-100 dark:bg-white/10">
-                            {ActivityIcon && <ActivityIcon size={18} />}
+                    <Card key={`list-${p.title}`} className={`p-5 transition-shadow ${isPlaceholder ? "border-dashed opacity-90" : "hover:shadow-lg"}`}>
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                        <div
+                          className="h-36 w-full sm:w-48 rounded-2xl overflow-hidden bg-slate-200/40 dark:bg-white/10 flex-none border border-black/5 dark:border-white/10"
+                          style={{
+                            backgroundImage: isPlaceholder
+                              ? `linear-gradient(135deg, rgba(15,23,42,0.12), rgba(37,99,235,0.18))`
+                              : `linear-gradient(135deg, rgba(15,23,42,0.2), rgba(37,99,235,0.25)), url(${p.image})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                          }}
+                        />
+                        <div className="flex-1 space-y-3 min-w-0">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="text-lg font-semibold leading-tight truncate">{p.title}</div>
+                              <div className="text-sm opacity-70 truncate">{p.subtitle}</div>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {p.tags.map((t) => (
+                                <Badge key={`${p.title}-list-tag-${t}`} className={`rounded-xl ${t === "Placeholder" ? "opacity-70" : ""}`}>
+                                  {t}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
-                          <div className="text-lg font-semibold">{act.title}</div>
+                          <p className="text-sm leading-relaxed opacity-80 line-clamp-4">{p.description}</p>
+                          {!isPlaceholder && (
+                            <div className="flex flex-wrap gap-2">
+                              {p.links.map((l) => (
+                                <a key={`${p.title}-list-link-${l.label}`} href={l.href} target="_blank" rel="noreferrer">
+                                  <Button size="sm" variant="outline" className="gap-2 rounded-xl">
+                                    <ExternalLink size={14} /> {l.label}
+                                  </Button>
+                                </a>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <ul className="mt-4 space-y-2 text-sm opacity-80">
-                          {act.items.map((item, idx) => (
-                            <li key={idx} className="leading-relaxed">• {item}</li>
-                          ))}
-                        </ul>
-                      </CardContent>
+                      </div>
                     </Card>
                   );
                 })}
               </div>
-            </Section>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+              {canShowSeeMore && (
+                <div className="flex justify-center">
+                  <Button size="sm" variant="secondary" className="gap-2 rounded-2xl" onClick={() => setShowAllProjects(true)}>
+                    See more projects
+                    <ChevronDown size={14} />
+                  </Button>
+                </div>
+              )}
+
+              {showAllProjects && listProjects.length > listPreviewCount && (
+                <div className="flex justify-center">
+                  <Button size="sm" variant="ghost" className="gap-2 rounded-2xl" onClick={() => setShowAllProjects(false)}>
+                    Show fewer
+                    <ChevronDown size={14} className="transform rotate-180" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </Section>
+
+        {/* Awards Section */}
+        <Section id="awards">
+          <Title icon={<Award />}>Awards</Title>
+          <div className="grid md:grid-cols-2 gap-6">
+            {AWARDS.map((a) => (
+              <Card key={a.title}>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="text-xl font-bold">{a.title}</div>
+                      <div className="text-sm opacity-70">{a.org}</div>
+                    </div>
+                    <Badge variant="outline" className="rounded-xl">{a.year}</Badge>
+                  </div>
+                  <p className="mt-3 text-sm leading-relaxed opacity-80">{a.notes}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </Section>
+
+        {/* Activities Section */}
+        <Section id="activities">
+          <Title icon={<Music4 />}>Other Activities</Title>
+          <div className="grid md:grid-cols-3 gap-6">
+            {ACTIVITIES.map((act) => {
+              const ActivityIcon = ICON_MAP[act.icon];
+              return (
+                <Card key={act.title}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-xl bg-gray-100 dark:bg-white/10">
+                        {ActivityIcon && <ActivityIcon size={18} />}
+                      </div>
+                      <div className="text-lg font-semibold">{act.title}</div>
+                    </div>
+                    <ul className="mt-4 space-y-2 text-sm opacity-80">
+                      {act.items.map((item, idx) => (
+                        <li key={idx} className="leading-relaxed">• {item}</li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </Section>
+      </div>
 
       {/* Footer */}
       <Section>
