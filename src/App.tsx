@@ -52,6 +52,7 @@ type Award = {
   org: string;
   year: string;
   notes: string;
+  image: string;
 };
 
 type Activity = {
@@ -137,6 +138,164 @@ const AutoProjectMarquee = ({ projects }: { projects: Project[] }) => {
   );
 };
 
+// Auto-scrolling horizontal awards carousel
+const AWARD_CARD_WIDTH = 380;
+const AutoAwardsCarousel = ({ awards }: { awards: Award[] }) => {
+  const [focusedAward, setFocusedAward] = React.useState<Award | null>(null);
+  const marqueeAwards = React.useMemo(() => [...awards, ...awards, ...awards], [awards]);
+  const totalWidth = React.useMemo(() => awards.length * AWARD_CARD_WIDTH, [awards.length]);
+
+  if (!awards.length) return null;
+
+  return (
+    <>
+      <div className="relative overflow-hidden -mx-6 md:-mx-12">
+        <motion.div
+          className="flex gap-6 px-6"
+          animate={{ x: [0, -totalWidth] }}
+          transition={{
+            duration: awards.length * 8,
+            ease: "linear",
+            repeat: Infinity,
+            repeatType: "loop",
+          }}
+        >
+          {marqueeAwards.map((award, idx) => (
+            <motion.div
+              key={`${award.title}-${idx}`}
+              className="flex-none w-[360px] cursor-pointer"
+              onHoverStart={() => setFocusedAward(award)}
+              whileHover={{ scale: 1.05, zIndex: 10 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card className="h-full overflow-hidden border-0 bg-gradient-to-br from-slate-900/90 via-slate-900/80 to-blue-900/40 backdrop-blur shadow-2xl hover:shadow-blue-500/30 transition-shadow duration-300">
+                <div className="relative h-48 overflow-hidden">
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: `linear-gradient(135deg, rgba(15,23,42,0.7), rgba(37,99,235,0.5)), url(${award.image})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
+                  <div className="absolute top-4 right-4">
+                    <Badge className="rounded-full px-4 py-1.5 text-sm font-bold bg-white/90 text-slate-900">
+                      {award.year}
+                    </Badge>
+                  </div>
+                </div>
+                <CardContent className="p-6 text-white">
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="font-heading text-xl tracking-tight uppercase leading-tight line-clamp-2">
+                        {award.title}
+                      </h3>
+                      <p className="text-sm text-blue-200 mt-1">{award.org}</p>
+                    </div>
+                    <p className="text-sm text-white/90 leading-relaxed line-clamp-3">
+                      {award.notes}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </motion.div>
+        {/* Fade edges for infinite scroll effect */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-black/40 to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-black/40 to-transparent" />
+      </div>
+
+      {/* Focused Award Modal Overlay */}
+      <AnimatePresence>
+        {focusedAward && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50 flex items-center justify-center px-4"
+            onMouseLeave={() => setFocusedAward(null)}
+            onClick={() => setFocusedAward(null)}
+          >
+            {/* Backdrop blur */}
+            <motion.div
+              initial={{ backdropFilter: "blur(0px)" }}
+              animate={{ backdropFilter: "blur(12px)" }}
+              exit={{ backdropFilter: "blur(0px)" }}
+              className="absolute inset-0 bg-black/60"
+            />
+            
+            {/* Focused Card */}
+            <motion.div
+              initial={{ scale: 0.8, y: 50, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.8, y: 50, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+              className="relative z-10 w-full max-w-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Card className="overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-slate-900 via-slate-900/95 to-blue-900/60 backdrop-blur-xl shadow-2xl">
+                <div className="relative h-64 md:h-80 overflow-hidden">
+                  <motion.div
+                    className="absolute inset-0"
+                    initial={{ scale: 1.2 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.6 }}
+                    style={{
+                      backgroundImage: `linear-gradient(135deg, rgba(15,23,42,0.6), rgba(37,99,235,0.4)), url(${focusedAward.image})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent" />
+                  <div className="absolute top-6 right-6">
+                    <Badge className="rounded-full px-6 py-2 text-lg font-bold bg-white text-slate-900 shadow-lg">
+                      {focusedAward.year}
+                    </Badge>
+                  </div>
+                  <button
+                    onClick={() => setFocusedAward(null)}
+                    className="absolute top-6 left-6 h-10 w-10 rounded-full bg-white/90 hover:bg-white text-slate-900 flex items-center justify-center shadow-lg transition-all hover:scale-110"
+                    aria-label="Close"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <CardContent className="p-8 text-white">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, duration: 0.4 }}
+                    className="space-y-4"
+                  >
+                    <div>
+                      <h3 className="font-heading text-3xl md:text-4xl tracking-tight uppercase leading-tight">
+                        {focusedAward.title}
+                      </h3>
+                      <p className="text-lg text-blue-200 mt-2 font-semibold">{focusedAward.org}</p>
+                    </div>
+                    <div className="h-px bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-transparent" />
+                    <p className="text-base md:text-lg text-white/90 leading-relaxed">
+                      {focusedAward.notes}
+                    </p>
+                    <div className="pt-4">
+                      <Badge variant="outline" className="rounded-full px-4 py-2 text-sm border-blue-400/50 text-blue-200">
+                        🏆 Achievement Unlocked
+                      </Badge>
+                    </div>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
+
 // Manual switch carousel for projects section
 const ProjectCarousel = ({ projects }: { projects: Project[] }) => {
   const [index, setIndex] = React.useState(0);
@@ -158,8 +317,8 @@ const ProjectCarousel = ({ projects }: { projects: Project[] }) => {
   const handleNext = () => setIndex((idx) => (idx + 1) % projects.length);
 
   return (
-    <div className="relative">
-      <div className="relative overflow-hidden rounded-3xl border border-black/10 dark:border-white/10 bg-white/90 dark:bg-black/40 backdrop-blur-md shadow-xl p-4 md:p-5">
+    <div className="relative h-full flex flex-col">
+      <div className="relative overflow-hidden rounded-3xl border border-black/10 dark:border-white/10 bg-white/90 dark:bg-black/40 backdrop-blur-md shadow-xl p-3 md:p-4 flex-1 flex flex-col min-h-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={`${current.title}-${index}`}
@@ -167,29 +326,40 @@ const ProjectCarousel = ({ projects }: { projects: Project[] }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
+            className="h-full"
           >
-            <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-black/5 dark:border-white/10">
+            <div className="relative w-full h-full rounded-2xl overflow-hidden border border-black/5 dark:border-white/10">
               <div
                 className="absolute inset-0"
                 style={{
-                  backgroundImage: `linear-gradient(135deg, rgba(15,23,42,0.5), rgba(37,99,235,0.35)), url(${current.image})`,
+                  backgroundImage: `linear-gradient(135deg, rgba(15,23,42,0.6), rgba(37,99,235,0.4)), url(${current.image})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-              <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-2">
+              <div className="absolute top-4 left-4 right-4 flex flex-wrap gap-2">
                 {current.tags.map((tag) => (
-                  <Badge key={`${current.title}-${tag}`} className="rounded-2xl px-3 py-1 text-[10px] md:text-xs bg-white/80 backdrop-blur text-slate-900">
+                  <Badge key={`${current.title}-${tag}`} className="rounded-2xl px-3 py-1.5 text-xs md:text-sm bg-white/90 backdrop-blur text-slate-900 font-semibold">
                     {tag}
                   </Badge>
                 ))}
               </div>
 
-              <div className="absolute left-4 right-4 bottom-4 space-y-1.5 text-white">
-                <div className="font-heading text-xl md:text-2xl tracking-tight uppercase leading-tight line-clamp-2 drop-shadow">{current.title}</div>
-                <div className="text-xs md:text-sm text-white/80 line-clamp-2">{current.subtitle}</div>
+              <div className="absolute left-4 right-4 bottom-4 space-y-3 text-white">
+                <div className="font-heading text-2xl md:text-3xl tracking-tight uppercase leading-tight drop-shadow-lg">{current.title}</div>
+                <p className="text-sm md:text-base text-white/90 leading-relaxed line-clamp-3 drop-shadow">{current.description}</p>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {current.links.map((link) => (
+                    <a key={`${current.title}-${link.label}`} href={link.href} target="_blank" rel="noreferrer">
+                      <Button variant="secondary" size="sm" className="gap-2 rounded-2xl text-xs bg-white/90 hover:bg-white text-slate-900 font-semibold">
+                        <ExternalLink size={14} />
+                        {link.label}
+                      </Button>
+                    </a>
+                  ))}
+                </div>
               </div>
 
               {projects.length > 1 && (
@@ -198,34 +368,20 @@ const ProjectCarousel = ({ projects }: { projects: Project[] }) => {
                     type="button"
                     onClick={handlePrev}
                     aria-label="Previous project"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/80 text-slate-800 hover:bg-white shadow"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 text-slate-800 hover:bg-white shadow-lg transition-all hover:scale-110"
                   >
-                    <ChevronLeft size={16} className="mx-auto" />
+                    <ChevronLeft size={18} className="mx-auto" />
                   </button>
                   <button
                     type="button"
                     onClick={handleNext}
                     aria-label="Next project"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/80 text-slate-800 hover:bg-white shadow"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 text-slate-800 hover:bg-white shadow-lg transition-all hover:scale-110"
                   >
-                    <ChevronRight size={16} className="mx-auto" />
+                    <ChevronRight size={18} className="mx-auto" />
                   </button>
                 </>
               )}
-            </div>
-
-            <div className="mt-4 space-y-3 text-slate-900 dark:text-white">
-              <p className="text-sm md:text-base opacity-90 leading-relaxed line-clamp-5">{current.description}</p>
-              <div className="flex flex-wrap gap-3">
-                {current.links.map((link) => (
-                  <a key={`${current.title}-${link.label}`} href={link.href} target="_blank" rel="noreferrer">
-                    <Button variant="outline" size="sm" className="gap-2 rounded-2xl">
-                      <ExternalLink size={14} />
-                      {link.label}
-                    </Button>
-                  </a>
-                ))}
-              </div>
             </div>
           </motion.div>
         </AnimatePresence>
@@ -258,20 +414,62 @@ const ProjectCarousel = ({ projects }: { projects: Project[] }) => {
 const Section = ({ children, id }: { children: React.ReactNode; id?: string }) => (
   <motion.section
     id={id}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5 }}
-    className="w-full min-h-screen flex flex-col justify-center px-6 md:px-12 py-16"
+    initial={{ opacity: 0, y: 100, scale: 0.95 }}
+    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+    viewport={{ once: false, amount: 0.2, margin: "-100px" }}
+    transition={{ 
+      duration: 1.2, 
+      ease: [0.16, 1, 0.3, 1],
+      opacity: { duration: 0.8 }
+    }}
+    className="w-full min-h-screen flex flex-col justify-center px-6 md:px-12 py-16 relative"
   >
-    {children}
+    <motion.div 
+      className="absolute inset-0 bg-gradient-to-b from-blue-500/[0.03] via-purple-500/[0.02] to-cyan-500/[0.03] pointer-events-none rounded-3xl"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      transition={{ duration: 1.5 }}
+    />
+    <motion.div 
+      className="relative z-10"
+      initial={{ filter: "blur(10px)" }}
+      whileInView={{ filter: "blur(0px)" }}
+      transition={{ duration: 0.8, delay: 0.2 }}
+    >
+      {children}
+    </motion.div>
   </motion.section>
 );
 
 const Title = ({ icon, children }: { icon?: React.ReactNode; children: React.ReactNode }) => (
-  <div className="flex items-center gap-3 mb-6">
-    {icon && <div className="p-2 rounded-2xl bg-gray-100 dark:bg-white/10">{icon}</div>}
-    <h2 className="font-heading text-3xl md:text-4xl tracking-[0.08em] uppercase">{children}</h2>
-  </div>
+  <motion.div 
+    className="flex items-center gap-3 mb-6"
+    initial={{ opacity: 0, x: -30 }}
+    whileInView={{ opacity: 1, x: 0 }}
+    viewport={{ once: false }}
+    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+  >
+    {icon && (
+      <motion.div 
+        className="p-2 rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 backdrop-blur-sm border border-white/10"
+        initial={{ scale: 0, rotate: -180 }}
+        whileInView={{ scale: 1, rotate: 0 }}
+        viewport={{ once: false }}
+        transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {icon}
+      </motion.div>
+    )}
+    <motion.h2 
+      className="font-heading text-3xl md:text-4xl tracking-[0.08em] uppercase bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-white"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: false }}
+      transition={{ duration: 0.8, delay: 0.3 }}
+    >
+      {children}
+    </motion.h2>
+  </motion.div>
 );
 
 // -----------------------------
@@ -505,20 +703,68 @@ export default function App() {
   
 
   return (
-    <div className="min-h-screen transition-colors">
+    <div className="min-h-screen transition-colors relative overflow-x-hidden">
+      {/* Dynamic animated gradient background */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-600/20 via-transparent to-transparent animate-gradient-shift" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-purple-600/20 via-transparent to-transparent animate-gradient-shift-reverse" />
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" />
+      </div>
+
+      {/* Floating 3D orbs with blur effect */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <motion.div
+          className="absolute top-20 left-[10%] w-64 h-64 rounded-full bg-gradient-to-br from-blue-500/30 to-cyan-500/30 blur-[100px]"
+          animate={{
+            y: [0, -30, 0],
+            x: [0, 20, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div
+          className="absolute top-[40%] right-[15%] w-96 h-96 rounded-full bg-gradient-to-br from-purple-500/25 to-pink-500/25 blur-[120px]"
+          animate={{
+            y: [0, 40, 0],
+            x: [0, -30, 0],
+            scale: [1, 1.15, 1],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+        />
+        <motion.div
+          className="absolute bottom-[20%] left-[50%] w-80 h-80 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 blur-[110px]"
+          animate={{
+            y: [0, -40, 0],
+            x: [0, 30, 0],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2
+          }}
+        />
+      </div>
+
       {/* About Intro */}
       <motion.section
         id="about"
-        initial={{ opacity: 0, y: 32 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
         className="relative overflow-hidden w-full min-h-screen flex"
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-white to-blue-50 dark:from-black dark:via-black dark:to-slate-900" />
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-200/40 blur-3xl dark:bg-blue-500/10" />
-          <div className="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-purple-200/40 blur-3xl dark:bg-purple-500/10" />
-        </div>
+        <div className="absolute inset-0 opacity-50" />
   <div className="relative w-full px-6 md:px-12 py-24 md:py-32 flex items-center">
           <div className="grid gap-12 md:grid-cols-[1.1fr_.9fr] items-center w-full">
             <div className="flex flex-col justify-center gap-0 max-w-3xl mt-10 md:mt-35">
@@ -578,10 +824,11 @@ export default function App() {
       </motion.section>
 
       <motion.section
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative w-full overflow-visible bg-transparent"
+        initial={{ opacity: 0, y: 80, scale: 0.95 }}
+        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        viewport={{ once: false, amount: 0.3 }}
+        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+        className="relative w-full overflow-visible bg-transparent min-h-screen flex items-center"
       >
         <div className="relative w-full px-6 md:px-12 py-12">
           <div className="w-full">
@@ -660,37 +907,46 @@ export default function App() {
       {/* Header removed per request */}
 
       {/* Content (sequential sections) */}
-      <div>
+      <>
         {/* Projects Section */}
         <Section id="projects">
           <Title icon={<Briefcase />}>Projects</Title>
           <div className="grid gap-10 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)] xl:grid-cols-[minmax(320px,420px)_minmax(0,1fr)]">
-            <div className="space-y-6 lg:sticky lg:top-32 self-start">
-              <div className="space-y-2">
+            {/* Complex & Showable - Fixed/Sticky */}
+            <div className="lg:sticky lg:top-24 self-start lg:h-[calc(100vh-8rem)] flex flex-col overflow-hidden">
+              <div className="space-y-2 mb-4 flex-none">
                 <span className="text-xs font-semibold tracking-[0.28em] uppercase text-blue-600/70 dark:text-blue-300/70">Featured Carousel</span>
                 <h3 className="font-heading text-2xl tracking-[0.12em] uppercase leading-none">Complex & Showable</h3>
-                <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">A rotating highlight of the builds I reach for first during deep-dive demos.</p>
+                <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">A rotating highlight of the builds I reach for</p>
               </div>
-              {featuredProjects.length ? (
-                <Card className="p-4 lg:p-5 border-0 bg-gradient-to-br from-slate-900 via-slate-900/95 to-blue-600/20 text-white shadow-2xl">
-                  <div className="text-xs uppercase tracking-[0.24em] text-white/60 mb-3">Swipe or watch the loop</div>
-                  <ProjectCarousel projects={featuredProjects} />
-                </Card>
-              ) : (
-                <div className="rounded-3xl border border-dashed border-white/40 bg-white/10 p-6 text-sm text-white/70">
-                  Add another project and it will appear here as a featured story.
-                </div>
-              )}
+              <div className="flex-1 min-h-0 overflow-hidden">
+                {featuredProjects.length ? (
+                  <Card className="h-full flex flex-col p-4 lg:p-5 border-0 bg-gradient-to-br from-slate-900 via-slate-900/95 to-blue-600/20 text-white shadow-2xl">
+                    <div className="text-xs uppercase tracking-[0.24em] text-white/60 mb-3 flex-none">Swipe or watch the loop</div>
+                    <div className="flex-1 min-h-0 overflow-hidden">
+                      <ProjectCarousel projects={featuredProjects} />
+                    </div>
+                  </Card>
+                ) : (
+                  <div className="rounded-3xl border border-dashed border-white/40 bg-white/10 p-6 text-sm text-white/70">
+                    Add another project and it will appear here as a featured story.
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="space-y-2">
+            {/* Launch-ready builds - Scrollable */}
+            <div className="relative lg:h-[calc(100vh-8rem)] flex flex-col">
+              {/* Fixed header */}
+              <div className="space-y-2 mb-6 flex-none">
                 <span className="text-xs font-semibold tracking-[0.28em] uppercase text-slate-500 dark:text-slate-400">Project Stack</span>
                 <h3 className="font-heading text-xl tracking-[0.16em] uppercase">Launch-ready builds</h3>
                 <p className="text-sm text-slate-600 dark:text-slate-300">Browse the rest of the roadmap-friendly work. Each cards links out to repos, demos, or case studies.</p>
               </div>
 
-              <div className="space-y-5">
+              {/* Scrollable content */}
+              <div className="flex-1 lg:overflow-y-auto lg:pr-2 scrollbar-thin lg:pb-8">
+                <div className="space-y-5">
                 {displayProjects.map((p) => {
                   const isPlaceholder = p.tags?.includes("Placeholder");
                   return (
@@ -756,29 +1012,17 @@ export default function App() {
                   </Button>
                 </div>
               )}
+              </div>
+              {/* Fade effect at bottom */}
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white dark:from-black to-transparent" />
             </div>
           </div>
         </Section>
 
         {/* Awards Section */}
         <Section id="awards">
-          <Title icon={<Award />}>Awards</Title>
-          <div className="grid md:grid-cols-2 gap-6">
-            {AWARDS.map((a) => (
-              <Card key={a.title}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="text-xl font-bold">{a.title}</div>
-                      <div className="text-sm opacity-70">{a.org}</div>
-                    </div>
-                    <Badge variant="outline" className="rounded-xl">{a.year}</Badge>
-                  </div>
-                  <p className="mt-3 text-sm leading-relaxed opacity-80">{a.notes}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <Title icon={<Award />}>Awards & Recognition</Title>
+          <AutoAwardsCarousel awards={AWARDS} />
         </Section>
 
         {/* Activities Section */}
@@ -807,7 +1051,7 @@ export default function App() {
             })}
           </div>
         </Section>
-      </div>
+      </>
 
       {/* Footer */}
       <Section>

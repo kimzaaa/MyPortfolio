@@ -3,18 +3,49 @@
     "title": "TAIEC Round 2 Finalist",
     "org": "Thailand AI Engineering Challenge",
     "year": "2025",
-    "notes": "Implemented KNN, DBSCAN, and DAG scheduling from first principles."
+    "notes": "Implemented KNN, DBSCAN, and DAG scheduling from first principles.",
+    "image": "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&q=80"
   },
   {
     "title": "NSC Game Development – Top Project",
     "org": "National Software Contest",
     "year": "2025",
-    "notes": "Serious zombie game with crate-drop systems and community feedback loop."
+    "notes": "Serious zombie game with crate-drop systems and community feedback loop.",
+    "image": "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&q=80"
   },
   {
     "title": "School Honors – Computer Science",
     "org": "Debsirin College",
     "year": "2024",
-    "notes": "Academic excellence, STEM leadership, and mentoring peers."
+    "notes": "Academic excellence, STEM leadership, and mentoring peers.",
+    "image": "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800&q=80"
+  },
+  {
+    "title": "Hackathon Winner",
+    "org": "Bangkok Tech Summit",
+    "year": "2024",
+    "notes": "Built an AI-powered productivity app in 48 hours with React and Python.",
+    "image": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80"
+  },
+  {
+    "title": "Best Innovation Award",
+    "org": "Youth Tech Conference",
+    "year": "2024",
+    "notes": "Created an AR educational platform for STEM learning in schools.",
+    "image": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80"
+  },
+  {
+    "title": "Outstanding Developer",
+    "org": "Code Challenge Thailand",
+    "year": "2023",
+    "notes": "Top performer in algorithmic problem solving and system design.",
+    "image": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"
+  },
+  {
+    "title": "Web Development Excellence",
+    "org": "Digital Creators Summit",
+    "year": "2023",
+    "notes": "Recognized for outstanding portfolio and modern web development skills.",
+    "image": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80"
   }
 ]
