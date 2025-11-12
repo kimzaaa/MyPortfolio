@@ -138,154 +138,136 @@ const AutoProjectMarquee = ({ projects }: { projects: Project[] }) => {
   );
 };
 
-// Auto-scrolling horizontal awards carousel
-const AWARD_CARD_WIDTH = 380;
-const AutoAwardsCarousel = ({ awards }: { awards: Award[] }) => {
-  const [focusedAward, setFocusedAward] = React.useState<Award | null>(null);
-  const marqueeAwards = React.useMemo(() => [...awards, ...awards, ...awards], [awards]);
-  const totalWidth = React.useMemo(() => awards.length * AWARD_CARD_WIDTH, [awards.length]);
+// Featured award layout: highlights the most recent award and shows a compact list of other awards.
+const FeaturedAwards = ({ awards }: { awards: Award[] }) => {
+  const [focusedAward, setFocusedAward] = useState<Award | null>(null);
 
   if (!awards.length) return null;
 
+  // pick the most recent award as featured (fall back to first)
+  const featured = awards.reduce((cur, nxt) => {
+    const cy = parseInt(cur.year || "0", 10) || 0;
+    const ny = parseInt(nxt.year || "0", 10) || 0;
+    return ny > cy ? nxt : cur;
+  }, awards[0]);
+
+  const others = awards.filter((a) => a !== featured);
+  const previewOthers = others.slice(0, 4);
+
   return (
     <>
-      <div className="relative overflow-hidden -mx-6 md:-mx-12">
-        <motion.div
-          className="flex gap-6 px-6"
-          animate={{ x: [0, -totalWidth] }}
-          transition={{
-            duration: awards.length * 8,
-            ease: "linear",
-            repeat: Infinity,
-            repeatType: "loop",
-          }}
-        >
-          {marqueeAwards.map((award, idx) => (
-            <motion.div
-              key={`${award.title}-${idx}`}
-              className="flex-none w-[360px] cursor-pointer"
-              onHoverStart={() => setFocusedAward(award)}
-              whileHover={{ scale: 1.05, zIndex: 10 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="h-full overflow-hidden border-0 bg-gradient-to-br from-slate-900/90 via-slate-900/80 to-blue-900/40 backdrop-blur shadow-2xl hover:shadow-blue-500/30 transition-shadow duration-300">
-                <div className="relative h-48 overflow-hidden">
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      backgroundImage: `linear-gradient(135deg, rgba(15,23,42,0.7), rgba(37,99,235,0.5)), url(${award.image})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
-                  <div className="absolute top-4 right-4">
-                    <Badge className="rounded-full px-4 py-1.5 text-sm font-bold bg-white/90 text-slate-900">
-                      {award.year}
-                    </Badge>
+      <div className="grid gap-6 md:grid-cols-2 items-start">
+        {/* Featured large card */}
+        <div>
+          <Card className="overflow-hidden border-0 bg-white/95 dark:bg-black/10 shadow-2xl">
+            <div className="relative h-64 md:h-80 overflow-hidden rounded-lg">
+              {featured.image && (
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `linear-gradient(135deg, rgba(15,23,42,0.25), rgba(37,99,235,0.08)), url(${featured.image})` }}
+                />
+              )}
+            </div>
+            <div className="p-6 md:p-8">
+              <div className="flex items-center justify-between gap-4">
+                <h3 className="font-heading text-2xl md:text-3xl tracking-tight uppercase text-slate-900 dark:text-slate-100">{featured.title}</h3>
+                <Badge className="rounded-full px-4 py-2 text-sm bg-slate-100 dark:bg-white/6 text-slate-800">{featured.year}</Badge>
+              </div>
+              <p className="text-sm text-blue-600/80 mt-1">{featured.org}</p>
+              <p className="mt-4 text-sm text-slate-700 dark:text-slate-200 leading-relaxed">{featured.notes}</p>
+              <div className="mt-4">
+                <Button onClick={() => setFocusedAward(featured)} className="rounded-2xl">
+                  View details
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Compact list of other awards */}
+        <div className="flex flex-col gap-4">
+          <div className="space-y-3">
+            {previewOthers.map((award, idx) => (
+              <Card
+                key={`${award.title}-${idx}`}
+                className="p-3 flex items-center gap-4 cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => setFocusedAward(award)}
+              >
+                <div
+                  className="h-16 w-24 rounded-md bg-gray-100 dark:bg-white/5 flex-none overflow-hidden"
+                  style={{ backgroundImage: award.image ? `url(${award.image})` : undefined, backgroundSize: "cover", backgroundPosition: "center" }}
+                />
+                <div className="min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-sm font-semibold truncate">{award.title}</div>
+                    <Badge className="rounded-full px-3 py-1 text-sm bg-slate-100 dark:bg-white/6">{award.year}</Badge>
                   </div>
+                  <div className="text-xs text-blue-600/80">{award.org}</div>
+                  <p className="text-xs text-slate-700 dark:text-slate-200 line-clamp-2 mt-1">{award.notes}</p>
                 </div>
-                <CardContent className="p-6 text-white">
-                  <div className="space-y-3">
-                    <div>
-                      <h3 className="font-heading text-xl tracking-tight uppercase leading-tight line-clamp-2">
-                        {award.title}
-                      </h3>
-                      <p className="text-sm text-blue-200 mt-1">{award.org}</p>
-                    </div>
-                    <p className="text-sm text-white/90 leading-relaxed line-clamp-3">
-                      {award.notes}
-                    </p>
-                  </div>
-                </CardContent>
               </Card>
-            </motion.div>
-          ))}
-        </motion.div>
-        {/* Fade edges for infinite scroll effect */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-black/40 to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-black/40 to-transparent" />
+            ))}
+          </div>
+
+          {others.length > previewOthers.length && (
+            <div className="mt-2">
+              <Button variant="outline" size="sm" className="w-full" onClick={() => setFocusedAward(others[0])}>
+                See all awards
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Focused Award Modal Overlay */}
+      {/* Focused Award Modal Overlay (open on click) */}
       <AnimatePresence>
         {focusedAward && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.24 }}
             className="fixed inset-0 z-50 flex items-center justify-center px-4"
-            onMouseLeave={() => setFocusedAward(null)}
             onClick={() => setFocusedAward(null)}
           >
-            {/* Backdrop blur */}
+            {/* Backdrop */}
             <motion.div
               initial={{ backdropFilter: "blur(0px)" }}
-              animate={{ backdropFilter: "blur(12px)" }}
+              animate={{ backdropFilter: "blur(8px)" }}
               exit={{ backdropFilter: "blur(0px)" }}
-              className="absolute inset-0 bg-black/60"
+              className="absolute inset-0 bg-black/55"
             />
-            
-            {/* Focused Card */}
+
             <motion.div
-              initial={{ scale: 0.8, y: 50, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.8, y: 50, opacity: 0 }}
-              transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
-              className="relative z-10 w-full max-w-2xl"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.36, bounce: 0.12 }}
+              className="relative z-10 w-full max-w-3xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <Card className="overflow-hidden border-2 border-blue-500/30 bg-gradient-to-br from-slate-900 via-slate-900/95 to-blue-900/60 backdrop-blur-xl shadow-2xl">
+              <Card className="overflow-hidden border shadow-2xl">
                 <div className="relative h-64 md:h-80 overflow-hidden">
-                  <motion.div
-                    className="absolute inset-0"
-                    initial={{ scale: 1.2 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.6 }}
-                    style={{
-                      backgroundImage: `linear-gradient(135deg, rgba(15,23,42,0.6), rgba(37,99,235,0.4)), url(${focusedAward.image})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent" />
+                  {focusedAward.image && (
+                    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${focusedAward.image})` }} />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   <div className="absolute top-6 right-6">
-                    <Badge className="rounded-full px-6 py-2 text-lg font-bold bg-white text-slate-900 shadow-lg">
-                      {focusedAward.year}
-                    </Badge>
+                    <Badge className="rounded-full px-6 py-2 text-lg font-bold bg-white text-slate-900 shadow">{focusedAward.year}</Badge>
                   </div>
                   <button
                     onClick={() => setFocusedAward(null)}
-                    className="absolute top-6 left-6 h-10 w-10 rounded-full bg-white/90 hover:bg-white text-slate-900 flex items-center justify-center shadow-lg transition-all hover:scale-110"
+                    className="absolute top-6 left-6 h-10 w-10 rounded-full bg-white/90 hover:bg-white text-slate-900 flex items-center justify-center shadow transition-transform hover:scale-110"
                     aria-label="Close"
                   >
                     ✕
                   </button>
                 </div>
-                <CardContent className="p-8 text-white">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, duration: 0.4 }}
-                    className="space-y-4"
-                  >
-                    <div>
-                      <h3 className="font-heading text-3xl md:text-4xl tracking-tight uppercase leading-tight">
-                        {focusedAward.title}
-                      </h3>
-                      <p className="text-lg text-blue-200 mt-2 font-semibold">{focusedAward.org}</p>
-                    </div>
-                    <div className="h-px bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-transparent" />
-                    <p className="text-base md:text-lg text-white/90 leading-relaxed">
-                      {focusedAward.notes}
-                    </p>
-                    <div className="pt-4">
-                      <Badge variant="outline" className="rounded-full px-4 py-2 text-sm border-blue-400/50 text-blue-200">
-                        🏆 Achievement Unlocked
-                      </Badge>
-                    </div>
-                  </motion.div>
+                <CardContent className="p-6 md:p-8">
+                  <h3 className="font-heading text-2xl md:text-3xl tracking-tight uppercase">{focusedAward.title}</h3>
+                  <p className="text-sm text-blue-600/80 mt-2">{focusedAward.org}</p>
+                  <div className="h-px bg-slate-200 my-4" />
+                  <p className="text-base leading-relaxed text-slate-700 dark:text-slate-200">{focusedAward.notes}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -703,7 +685,8 @@ export default function App() {
   
 
   return (
-    <div className="min-h-screen transition-colors relative overflow-x-hidden">
+    // Wrap whole app in a container so we can fade the entire page in/out simply
+    <div id="page-container" className="min-h-screen transition-colors relative overflow-x-hidden">
       {/* Dynamic animated gradient background */}
       <div className="fixed inset-0 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-600/20 via-transparent to-transparent animate-gradient-shift" />
@@ -822,6 +805,47 @@ export default function App() {
           </motion.button>
         </div>
       </motion.section>
+      {/* small scripty fade handling for internal anchors (simple fade out -> scroll -> fade in) */}
+      {/* This keeps the transitions trivial: fade out the page, jump to section, fade in. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `(() => {
+            const container = document.getElementById('page-container');
+            if (!container) return;
+
+            // initial reveal (fade in)
+            requestAnimationFrame(() => container.classList.remove('page-fade-out'));
+
+            // intercept internal anchor clicks
+            function handleClick(e) {
+              const a = e.target.closest && e.target.closest('a');
+              if (!a) return;
+              const href = a.getAttribute('href');
+              if (!href || !href.startsWith('#')) return;
+              const target = document.querySelector(href);
+              if (!target) return;
+              e.preventDefault();
+              container.classList.add('page-fade-out');
+              setTimeout(() => {
+                // scroll to target and then fade back in
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // small timeout to let smooth scroll begin before fading back in
+                setTimeout(() => container.classList.remove('page-fade-out'), 260);
+              }, 220);
+            }
+
+            document.addEventListener('click', handleClick);
+            // cleanup on hot reload / unmount in dev
+            try {
+              if (typeof module !== 'undefined' && module && module.hot && module.hot.dispose) {
+                module.hot.dispose(() => document.removeEventListener('click', handleClick));
+              }
+            } catch (e) {
+              // ignore - module may be undefined in some runtimes
+            }
+          })();`
+        }}
+      />
 
       <motion.section
         initial={{ opacity: 0, y: 80, scale: 0.95 }}
@@ -911,18 +935,19 @@ export default function App() {
         {/* Projects Section */}
         <Section id="projects">
           <Title icon={<Briefcase />}>Projects</Title>
-          <div className="grid gap-10 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)] xl:grid-cols-[minmax(320px,420px)_minmax(0,1fr)]">
+          {/* make featured column larger so "Complex & Showable" is the main focus */}
+          <div className="grid gap-10 lg:grid-cols-[minmax(420px,720px)_minmax(0,1fr)] xl:grid-cols-[minmax(520px,840px)_minmax(0,1fr)]">
             {/* Complex & Showable - Fixed/Sticky */}
             <div className="lg:sticky lg:top-24 self-start lg:h-[calc(100vh-8rem)] flex flex-col overflow-hidden">
-              <div className="space-y-2 mb-4 flex-none">
-                <span className="text-xs font-semibold tracking-[0.28em] uppercase text-blue-600/70 dark:text-blue-300/70">Featured Carousel</span>
-                <h3 className="font-heading text-2xl tracking-[0.12em] uppercase leading-none">Complex & Showable</h3>
-                <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">A rotating highlight of the builds I reach for</p>
+              <div className="space-y-3 mb-6 flex-none">
+                <span className="text-xs font-semibold tracking-[0.28em] uppercase text-blue-600/80 dark:text-blue-300/80">Featured</span>
+                <h3 className="font-heading text-3xl md:text-4xl tracking-[0.08em] uppercase leading-tight">Complex & Showable</h3>
+                <p className="text-sm md:text-base leading-relaxed text-slate-600 dark:text-slate-300">The projects I want you to focus on — larger, richer case studies and demos.</p>
               </div>
               <div className="flex-1 min-h-0 overflow-hidden">
                 {featuredProjects.length ? (
-                  <Card className="h-full flex flex-col p-4 lg:p-5 border-0 bg-gradient-to-br from-slate-900 via-slate-900/95 to-blue-600/20 text-white shadow-2xl">
-                    <div className="text-xs uppercase tracking-[0.24em] text-white/60 mb-3 flex-none">Swipe or watch the loop</div>
+                  <Card className="h-full flex flex-col p-6 md:p-8 border-0 bg-gradient-to-br from-slate-900 via-slate-900/95 to-blue-600/25 text-white shadow-[0_30px_60px_rgba(2,6,23,0.6)]">
+                    <div className="text-sm uppercase tracking-[0.24em] text-white/70 mb-4 flex-none">Featured case studies — tap or swipe</div>
                     <div className="flex-1 min-h-0 overflow-hidden">
                       <ProjectCarousel projects={featuredProjects} />
                     </div>
@@ -1022,7 +1047,7 @@ export default function App() {
         {/* Awards Section */}
         <Section id="awards">
           <Title icon={<Award />}>Awards & Recognition</Title>
-          <AutoAwardsCarousel awards={AWARDS} />
+          <FeaturedAwards awards={AWARDS} />
         </Section>
 
         {/* Activities Section */}
